@@ -22,7 +22,12 @@ spec:
             spec:
               properties:
                 deliverTo:
-                  type: string
+                  properties:
+                    slack:
+                      type: string
+                  required:
+                    - slack
+                  type: object
                 selector:
                   properties:
                     labels:

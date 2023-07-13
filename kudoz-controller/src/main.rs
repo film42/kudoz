@@ -68,7 +68,7 @@ async fn on_deployment_completed(
 
         if let Err(err) = super_kudo.send_super_kudo(&deployment).await {
             println!(
-                "ERROR: Sending a super kudo to {}, received error: {:?}",
+                "ERROR: Sending a super kudo to {:?}, received error: {:?}",
                 super_kudo.spec.deliver_to, err
             );
         }

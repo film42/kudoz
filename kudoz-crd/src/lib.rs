@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 )]
 pub struct SuperKudoSpec {
     pub selector: Selector,
-    pub deliver_to: String,
+    pub deliver_to: DeliverTo,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, JsonSchema)]
@@ -25,11 +25,15 @@ pub struct Selector {
     pub labels: BTreeMap<String, String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeliverTo {
+    pub slack: String,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
-pub struct SuperKudoBody {
-    name: String,
-    deployment_name: String,
-    message: String,
+pub struct SlackMessageBody {
+    text: String,
 }
 
 impl SuperKudo {
@@ -56,19 +60,20 @@ impl SuperKudo {
 
     pub async fn send_super_kudo(
         &self,
-        _deployment: &Deployment,
+        deployment: &Deployment,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let client = reqwest::Client::new();
         client
-            .post(&self.spec.deliver_to)
-            .json(&SuperKudoBody {
-                name: self.namespaced_name(),
-                deployment_name: self
-                    .metadata
-                    .name
-                    .clone()
-                    .unwrap_or_else(|| "<unknown>".to_string()),
-                message: "The deployment completed!".into(),
+            .post(&self.spec.deliver_to.slack)
+            .json(&SlackMessageBody {
+                text: format!(
+                    "Congrats! You just finished deploying {}!",
+                    deployment
+                        .metadata
+                        .name
+                        .clone()
+                        .unwrap_or_else(|| "<unknown>".to_string())
+                ),
             })
             .send()
             .await?;

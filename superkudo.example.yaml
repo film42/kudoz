@@ -7,4 +7,5 @@ spec:
   selector:
     labels:
       app: nginx
-  deliverTo: http://localhost:8000/test/my/hook
+  deliverTo:
+    slack: http://localhost:8000/test/my/hook

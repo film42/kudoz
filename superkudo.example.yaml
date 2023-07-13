@@ -1,0 +1,10 @@
+kind: SuperKudo
+apiVersion: kudoz.desh.es/v1
+metadata:
+  name: super-fun-example
+  namespace: default
+spec:
+  selector:
+    labels:
+      app: nginx
+  deliverTo: http://localhost:8000/test/my/hook

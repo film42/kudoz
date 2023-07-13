@@ -1,0 +1,45 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: superkudos.kudoz.desh.es
+spec:
+  group: kudoz.desh.es
+  names:
+    categories: []
+    kind: SuperKudo
+    plural: superkudos
+    shortNames: []
+    singular: superkudo
+  scope: Namespaced
+  versions:
+    - additionalPrinterColumns: []
+      name: v1
+      schema:
+        openAPIV3Schema:
+          description: "Auto-generated derived type for SuperKudoSpec via `CustomResource`"
+          properties:
+            spec:
+              properties:
+                deliverTo:
+                  type: string
+                selector:
+                  properties:
+                    labels:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  required:
+                    - labels
+                  type: object
+              required:
+                - deliverTo
+                - selector
+              type: object
+          required:
+            - spec
+          title: SuperKudo
+          type: object
+      served: true
+      storage: true
+      subresources: {}

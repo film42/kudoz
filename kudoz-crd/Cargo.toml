@@ -1,0 +1,13 @@
+[package]
+name = "kudoz-crd"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+k8s-openapi = { version = "0.17.0", default-features = false, features = ["v1_24", "schemars"] } # Kube-rs depends on k8s-openapi
+kube = { version = "0.80", default-features = true, features = ["derive", "runtime"] } # Library for talking to Kubernetes API
+schemars = "0.8"
+serde = "1"
+serde_json = "1.0"
+tokio = { version = "1.28.1", features = ["full"] }
+reqwest = { version = "0.11.18", features = ["json"] }

@@ -2,6 +2,7 @@ use k8s_openapi::api::apps::v1::Deployment;
 use kube::CustomResource;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 use std::collections::BTreeMap;
 
 #[derive(CustomResource, Serialize, Deserialize, Debug, PartialEq, Clone, JsonSchema)]
@@ -17,6 +18,7 @@ use std::collections::BTreeMap;
 pub struct SuperKudoSpec {
     pub selector: Selector,
     pub deliver_to: DeliverTo,
+    pub payload: Option<JsonValue>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, JsonSchema)]
@@ -29,11 +31,6 @@ pub struct Selector {
 #[serde(rename_all = "camelCase")]
 pub struct DeliverTo {
     pub slack: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SlackMessageBody {
-    text: String,
 }
 
 impl SuperKudo {
@@ -58,6 +55,24 @@ impl SuperKudo {
         false
     }
 
+    fn payload(&self, deployment: &Deployment) -> JsonValue {
+        use serde_json::json;
+
+        if let Some(ref p) = self.spec.payload {
+            return p.clone();
+        } else {
+            let text = format!(
+                "Congrats! You just finished deploying {}!",
+                deployment
+                    .metadata
+                    .name
+                    .clone()
+                    .unwrap_or_else(|| "<unknown>".to_string())
+            );
+            json!({ "text": text })
+        }
+    }
+
     pub async fn send_super_kudo(
         &self,
         deployment: &Deployment,
@@ -65,16 +80,7 @@ impl SuperKudo {
         let client = reqwest::Client::new();
         client
             .post(&self.spec.deliver_to.slack)
-            .json(&SlackMessageBody {
-                text: format!(
-                    "Congrats! You just finished deploying {}!",
-                    deployment
-                        .metadata
-                        .name
-                        .clone()
-                        .unwrap_or_else(|| "<unknown>".to_string())
-                ),
-            })
+            .json(&self.payload(&deployment))
             .send()
             .await?;
 

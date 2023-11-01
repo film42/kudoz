@@ -28,6 +28,8 @@ spec:
                   required:
                     - slack
                   type: object
+                payload:
+                  nullable: true
                 selector:
                   properties:
                     labels:

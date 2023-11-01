@@ -10,10 +10,10 @@ I wrote this operator to present to the UT Rust meetup in 2023. Feel free to use
 First, load the `SuperKudo` CRD into your cluster and list your crds to make sure it registered successfully.
 
 ```
-$ kubectl apply -f superkudos.kudoz.desh.es.yaml 
+$ kubectl apply -f superkudos.kudoz.desh.es.yaml
 customresourcedefinition.apiextensions.k8s.io/superkudos.kudoz.desh.es configured
 
-$ kubectl get crds                              
+$ kubectl get crds
 NAME                              CREATED AT
 ...
 superkudos.kudoz.desh.es          2023-07-14T00:04:38Z
@@ -22,7 +22,7 @@ superkudos.kudoz.desh.es          2023-07-14T00:04:38Z
 Next, load the example `SuperKudo` resource into your cluster in the default namespace.
 
 ```
-$ cat superkudo.example.yaml    
+$ cat superkudo.example.yaml
 kind: SuperKudo
 apiVersion: kudoz.desh.es/v1
 metadata:
@@ -35,14 +35,14 @@ spec:
   deliverTo:
     slack: http://localhost:8000/test/my/hook
 
-$ kubectl apply -f superkudo.example.yaml       
+$ kubectl apply -f superkudo.example.yaml
 superkudo.kudoz.desh.es/super-fun-example created
 ```
 
 Then, make sure you have a deployment that matches the labels `app: nginx`. There is an example one in the `fixtures/` directory.
 
 ```
-$ kubectl apply -f fixtures/deployment.example.yaml 
+$ kubectl apply -f fixtures/deployment.example.yaml
 deployment.apps/nginx-deployment-example created
 ```
 

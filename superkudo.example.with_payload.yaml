@@ -1,0 +1,17 @@
+kind: SuperKudo
+apiVersion: kudoz.desh.es/v1
+metadata:
+  name: super-fun-example
+  namespace: default
+spec:
+  selector:
+    labels:
+      app: nginx
+  deliverTo:
+    slack: http://localhost:8000/internal/tools/yolo
+  payload:
+    name: yolo
+    type: some_internal_thing
+    reason:
+      issues: true
+

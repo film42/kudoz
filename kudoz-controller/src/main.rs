@@ -29,6 +29,7 @@ pub enum Error {
 struct Ctx {
     client: Client,
     super_kudos: Arc<Mutex<BTreeMap<String, SuperKudo>>>,
+    generation_cache: Arc<Mutex<BTreeMap<String, i64>>>,
 }
 
 // Add and remove super kudos to our super kudos cache. This makes it easier
@@ -90,6 +91,19 @@ async fn watch_for_deployment_changes(ctx: Arc<Ctx>) -> Result<(), Box<dyn std::
             let ctx = ctx.clone();
             async move {
                 if deployment.finished_deploying() {
+                    if let Some(generation) = deployment.metadata.generation {
+                        let mut generation_cache =
+                            ctx.generation_cache.lock().expect("mutex failed");
+
+                        // If the generation cache already has this same generation, then skip it
+                        // for now.
+                        if generation_cache.insert(deployment.namespaced_name(), generation)
+                            == Some(generation)
+                        {
+                            return Ok(());
+                        }
+                    }
+
                     on_deployment_completed(deployment, ctx.clone())
                         .await
                         .unwrap();
@@ -122,6 +136,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ctx = Arc::new(Ctx {
         client,
         super_kudos: Arc::new(Mutex::new(super_kudos_cache)),
+        generation_cache: Arc::new(Mutex::new(BTreeMap::new())),
     });
 
     tokio::spawn({

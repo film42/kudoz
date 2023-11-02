@@ -5,10 +5,10 @@ use k8s_openapi::api::apps::v1::Deployment;
 use kube::{
     api::ListParams,
     client::Client,
-    //core::WatchEvent,
     runtime::{
         controller::{Action, Controller},
-        watcher, WatchStreamExt,
+        watcher,
+        watcher::Event,
     },
     Api,
 };
@@ -86,29 +86,32 @@ async fn watch_for_deployment_changes(ctx: Arc<Ctx>) -> Result<(), Box<dyn std::
     let deployments: Api<Deployment> = Api::all(ctx.client.clone());
 
     watcher(deployments, ListParams::default())
-        .applied_objects()
-        .try_for_each(|deployment| {
+        .try_for_each(|event| {
             let ctx = ctx.clone();
             async move {
-                if deployment.finished_deploying() {
-                    if let Some(generation) = deployment.metadata.generation {
-                        let mut generation_cache =
-                            ctx.generation_cache.lock().expect("mutex failed");
+                // Avoid using the build-in applied_objects() method to avoid the Event::Restarted
+                // records which show up on start. We only want to subscribe to new changes going
+                // forward.
+                if let Event::Applied(deployment) = event {
+                    if deployment.finished_deploying() {
+                        if let Some(generation) = deployment.metadata.generation {
+                            let mut generation_cache =
+                                ctx.generation_cache.lock().expect("mutex failed");
 
-                        // If the generation cache already has this same generation, then skip it
-                        // for now.
-                        if generation_cache.insert(deployment.namespaced_name(), generation)
-                            == Some(generation)
-                        {
-                            return Ok(());
+                            // If the generation cache already has this same generation, then skip it
+                            // for now.
+                            if generation_cache.insert(deployment.namespaced_name(), generation)
+                                == Some(generation)
+                            {
+                                return Ok(());
+                            }
                         }
+
+                        on_deployment_completed(deployment, ctx.clone())
+                            .await
+                            .unwrap();
                     }
-
-                    on_deployment_completed(deployment, ctx.clone())
-                        .await
-                        .unwrap();
                 }
-
                 Ok(())
             }
         })

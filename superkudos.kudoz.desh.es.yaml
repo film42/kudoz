@@ -29,7 +29,9 @@ spec:
                     - slack
                   type: object
                 payload:
+                  additionalProperties: true
                   nullable: true
+                  type: object
                 selector:
                   properties:
                     labels:

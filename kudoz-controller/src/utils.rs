@@ -2,6 +2,7 @@ use k8s_openapi::api::apps::v1::Deployment;
 
 pub trait DeploymentExt {
     fn finished_deploying(&self) -> bool;
+    fn namespaced_name(&self) -> String;
 }
 
 impl DeploymentExt for Deployment {
@@ -19,5 +20,15 @@ impl DeploymentExt for Deployment {
         }
 
         return false;
+    }
+
+    fn namespaced_name(&self) -> String {
+        if let (Some(name), Some(namespace)) = (
+            self.metadata.name.as_ref(),
+            self.metadata.namespace.as_ref(),
+        ) {
+            return format!("{namespace}/{name}");
+        }
+        return "<unknown>".into();
     }
 }
